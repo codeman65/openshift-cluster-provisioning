@@ -25,15 +25,7 @@ vSphere:
 - [ ] Service Account login information stored in vault files
 - [ ] Static DNS Records pre-created
 
-# Order of Operations
-```blockdiag
-blockdiag {
-"Clone repository" -> "Update Inventory File" -> "Install prerequisites";
-"Install prerequisites" -> "Retrieve Vault 
-password from password vault" -> "Run provisioning 
-playbook" -> "Day 2 cluster config";
-}
-```
+
 # How to Install Prerequisites
 ### Software dependencies (for cluster deployment)
 
