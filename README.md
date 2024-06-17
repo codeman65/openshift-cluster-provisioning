@@ -137,7 +137,6 @@ $ ansible-playbook playbooks/deploy-cluster.yaml \
 >
 > *Ansible Vault*
 >
-> The vault password is stored in CyberArk in the KUB_AppSafe under the name `ocp_automation_vault`
 
 #### Capture Install Configs for Cluster Destruction
 
