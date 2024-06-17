@@ -1,0 +1,36 @@
+---
+- name: Get hosts for base plays
+  hosts: localhost
+  gather_facts: false
+
+#- name: Perform base config
+#  ansible.builtin.import_playbook:
+#    base_playbook.yaml
+
+- name: Configs for playbook
+  hosts: localhost
+  gather_facts: false
+
+  # Uncomment K8S line if updating certs
+  # Leave commented for initial cluster
+  environment:
+    # K8S_AUTH_SSL_CA_CERT: "{{ K8S_AUTH_SSL_CA_CERT }}"
+
+  vars:
+    publickey: '{{ cert_public_key }}'
+    privatekey: '{{ cert_private_key }}'
+
+  tasks:
+
+    - name: Check cert existence
+      ansible.builtin.debug:
+        var: K8S_AUTH_SSL_CA_CERT
+
+
+    - name: Check publickey var
+      ansible.builtin.debug:
+        var: publickey
+
+    - name: Create and apply security certificates for cluster
+      ansible.builtin.import_role:
+        name: certs

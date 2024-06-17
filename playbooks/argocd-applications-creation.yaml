@@ -1,0 +1,8 @@
+---
+- name: Create ArgoCD Applications
+  hosts: localhost
+  gather_facts: no
+
+  roles:
+    - argocd_applications
+

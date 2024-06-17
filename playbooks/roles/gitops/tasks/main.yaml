@@ -1,0 +1,81 @@
+- name: OpenShift Install GitOps
+  redhat.openshift.k8s:
+     name: Install GitOps Operator
+     api_version: operators.coreos.com/v1alpha1
+     kind: Subscription
+     state: present
+     definition:
+       metadata:
+         name: openshift-gitops-operator
+         namespace: openshift-operators
+       spec:
+         channel: gitops-1.10
+         config:
+           env:
+            - name: ARGOCD_CLUSTER_CONFIG_NAMESPACES
+              value: openshift-gitops
+         installPlanApproval: Automatic
+         name: openshift-gitops-operator
+         source: redhat-operators
+         sourceNamespace: openshift-marketplace
+         startingCSV: openshift-gitops-operator.v1.10.0
+         tolerations:
+           - effect: NoSchedule
+             key: node-role.kubernetes.io/infra
+             operator: Exists
+
+#- name: Approve GitOps Install Plan
+#  redhat.openshift.k8s:
+#    api_version: operators.coreos.com/v1alpha1
+#    kind: InstallPlan
+#    state: present
+#    definition:
+#      metadata:
+#        name: install-gitops
+#        namespace: openshift-operators
+#        ownerReferences:
+#          - apiVersion: operators.coreos.com/v1alpha1
+#            blockOwnerDeletion: false
+#            controller: false
+#            kind: Subscription
+#            name: openshift-gitops-operator
+#            uid: 6cb4af84-0632-4c68-8696-b0e4e4d90cdb
+#      labels:
+#        operators.coreos.com/openshift-gitops-operator.openshift-operators: ''
+#      spec:
+#        approval: Manual
+#        approved: true
+#        clusterServiceVersionNames:
+#          - openshift-gitops-operator.v1.10.0
+#        generation: 1
+
+- name: Pause while installPlan finishes
+  ansible.builtin.pause:
+     seconds: 5
+
+- name: OpenShift Set GitOps to manual approval
+  redhat.openshift.k8s:
+     name: Install GitOps Operator
+     api_version: operators.coreos.com/v1alpha1
+     kind: Subscription
+     state: present
+     definition:
+       metadata:
+         name: openshift-gitops-operator
+         namespace: openshift-operators
+       spec:
+         channel: gitops-1.10
+         config:
+           env:
+            - name: ARGOCD_CLUSTER_CONFIG_NAMESPACES
+              value: openshift-gitops
+         installPlanApproval: Manual
+         name: openshift-gitops-operator
+         source: redhat-operators
+         sourceNamespace: openshift-marketplace
+         startingCSV: openshift-gitops-operator.v1.10.0
+         tolerations:
+           - effect: NoSchedule
+             key: node-role.kubernetes.io/infra
+             operator: Exists
+

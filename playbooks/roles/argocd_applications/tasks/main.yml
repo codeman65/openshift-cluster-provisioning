@@ -1,0 +1,81 @@
+---
+# tasks file for argocd_applications
+- name: Create cluster-logging ArgoCD Application
+  redhat.openshift.k8s:
+     api_version: argoproj.io/v1alpha1
+     kind: Application
+     state: present
+     definition:
+       metadata:
+         name: cluster-logging
+         namespace: openshift-gitops
+       spec:
+         destination:
+           server: 'https://kubernetes.default.svc'
+         project: default
+         source:
+           directory:
+             jsonnet:
+               tlas:
+                 - name: ''
+                   value: ''
+             recurse: true
+           path: openshift-logging
+           repoURL: 'https://git.oneok.com/kubernetes/openshift-cluster-logging.git'
+           targetRevision: '{{ targetRevision }}'
+         syncPolicy:
+           automated: {}
+
+- name: Create group-sync ArgoCD Application
+  redhat.openshift.k8s:
+     api_version: argoproj.io/v1alpha1
+     kind: Application
+     state: present
+     definition:
+       metadata:
+         name: group-sync-operator
+         namespace: openshift-gitops
+       spec:
+         destination:
+           server: 'https://kubernetes.default.svc'
+         project: default
+         source:
+           directory:
+             jsonnet:
+               tlas:
+                 - name: ''
+                   value: ''
+             recurse: true
+           path: group-sync
+           repoURL: 'https://git.oneok.com/kubernetes/group-sync-operator.git'
+           targetRevision: '{{ targetRevision }}'
+         syncPolicy:
+           automated:
+             selfHeal: true
+
+- name: Create ACS ArgoCD Application
+  redhat.openshift.k8s:
+     api_version: argoproj.io/v1alpha1
+     kind: Application
+     state: present
+     definition:
+       metadata:
+         name: acs
+         namespace: openshift-gitops
+       spec:
+         destination:
+           server: 'https://kubernetes.default.svc'
+         project: default
+         source:
+           directory:
+             jsonnet:
+               tlas:
+                 - name: ''
+                   value: ''
+             recurse: true
+           path: acs
+           repoURL: 'https://git.oneok.com/kubernetes/acs.git'
+           targetRevision: '{{ targetRevision }}'
+         syncPolicy:
+           automated:
+             selfHeal: true

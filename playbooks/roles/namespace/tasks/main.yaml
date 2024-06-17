@@ -1,0 +1,6 @@
+- name: OpenShift Testing Namespace Creation
+  redhat.openshift.k8s:
+     name: test-namespace
+     api_version: v1
+     kind: Namespace
+     state: present 

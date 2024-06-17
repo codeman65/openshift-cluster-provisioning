@@ -1,0 +1,7 @@
+---
+- name: Create Namespace
+  hosts: localhost
+  gather_facts: no
+
+  roles:
+    - namespace

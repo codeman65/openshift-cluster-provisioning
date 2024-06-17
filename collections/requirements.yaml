@@ -1,0 +1,7 @@
+---
+collections:
+- name: redhat.openshift
+  source: https://autohub.oneok.com/api/galaxy/content/rh-certified/
+
+- name: kubernetes.core
+  source: https://autohub.oneok.com/api/galaxy/content/rh-certified/

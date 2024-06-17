@@ -1,0 +1,125 @@
+apiVersion: v1
+baseDomain: {{ install_config.base_domain }}
+proxy:
+  httpProxy: http://proxy.company.com:8080
+  httpsProxy: http://proxy.company.com:8080
+  noProxy: git.company.com,registry.company.com,.company.com,10.0.0.0/8,172.17.0.0/16,172.18.0.0/16,127.0.0.0/8,192.168.0.0/16
+additionalTrustBundle: |
+    -----BEGIN CERTIFICATE-----
+    MIIEPDCCA...
+    -----END CERTIFICATE-----
+    -----BEGIN CERTIFICATE-----
+    MIIEPDCCA...
+    -----END CERTIFICATE-----
+    -----BEGIN CERTIFICATE-----
+    MIIDKDCCA...
+controlPlane:
+  architecture: amd64
+  hyperthreading: Enabled
+  name: master
+{% if install_config.control_plane is defined %}
+  platform:
+    vsphere:
+      cpus: {{ install_config.control_plane.cpus }}
+      coresPerSocket: {{ install_config.control_plane.cores_per_socket }}
+      memoryMB: {{ install_config.control_plane.memory_mb }}
+      osDisk:
+        diskSizeGB: {{ install_config.control_plane.disk_size_gb }}
+{% else %}
+  platform: {}
+{% endif %}
+  replicas: 3
+compute:
+- architecture: amd64
+  hyperthreading: Enabled
+  name: worker
+{% if install_config.workers is defined %}
+  platform:
+    vsphere:
+      cpus: {{ install_config.workers.cpus }}
+      coresPerSocket: {{ install_config.workers.cores_per_socket }}
+      memoryMB: {{ install_config.workers.memory_mb }}
+      osDisk:
+        diskSizeGB: {{ install_config.workers.disk_size_gb }}
+  replicas: {{ install_config.workers.replicas }}
+{% else %}
+  platform:
+    replicas: 3
+{% endif %}
+metadata:
+  creationTimestamp: null
+  name: {{ ocp_cluster.name }}
+networking:
+  clusterNetwork:
+{% if install_config.cluster_network is defined %}
+  - cidr: {{ install_config.cluster_network.cidr }}
+    hostPrefix: {{ install_config.cluster_network.prefix }}
+{% else %}
+  - cidr: 10.128.0.0/14
+    hostPrefix: 23
+{% endif %}
+  machineNetwork:
+{% if install_config.machine_network is defined %}
+  - cidr: {{ install_config.machine_network.cidr }}
+{% else %}
+  - cidr: 10.0.0.0/16
+{% endif %}
+{% if install_config.network_type is defined %}
+  networkType: {{ install_config.network_type }}
+{% else %}
+  networkType: OpenShiftSDN
+{% endif %}
+  serviceNetwork:
+{% if install_config.service_network is defined %}
+  - {{ install_config.service_network.cidr }}
+{% else %}
+  - 172.30.0.0/16
+{% endif %}
+{#platform:
+  vsphere:
+    apiVIPs:
+      - {{ vcenter_cluster.api_vip }}
+    ingressVIPs:
+      - {{ vcenter_cluster.ingress_vip }}
+    cluster: {{ vcenter.cluster }}
+    datacenter: {{ vcenter.datacenter }}
+    defaultDatastore: {{ vcenter.defaultDatastore }}
+    network: {{ vcenter_cluster.network }}
+    password: {{ vspherepw }}
+    username: {{ vsphereuname }}
+    vCenter: {{ vcenter.host }}
+    folder: {{ vcenter.folder }}
+    diskType: {{ vcenter.diskType }}#}
+platform:
+  vsphere: 
+    apiVIPs:
+      - {{ vcenter_cluster.api_vip }}
+    failureDomains: 
+    - name: generated-failure-domain
+      region: generated-region
+      server: {{ vcenter.host }}
+      topology:
+        computeCluster: /{{ vcenter.datacenter }}/host/{{ vcenter.cluster }}
+        datacenter: {{ vcenter.datacenter }}
+        datastore: /{{ vcenter.datacenter }}/datastore/{{ vcenter.defaultDatastore }}
+        networks:
+        - {{ vcenter_cluster.network }}
+        resourcePool: /{{ vcenter.datacenter }}/host/{{ vcenter.cluster }}//Resources
+        folder: {{ vcenter.folder }}
+      zone: generated-zone
+    ingressVIPs:
+    - {{ vcenter_cluster.ingress_vip }}
+    vcenters:
+    - datacenters:
+      - {{ vcenter.datacenter }}
+      password: {{ vspherepw }}
+      port: 443
+      server: {{ vcenter.host }}
+      user: {{ vsphereuname }}
+    diskType: thin 
+fips: false
+pullSecret: '{{ pullsecret }}'
+{% if install_config.ssh_key is defined %}
+sshKey: |
+   {{ install_config.ssh_key }}
+{% endif %}

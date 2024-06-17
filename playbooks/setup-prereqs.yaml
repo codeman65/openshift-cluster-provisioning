@@ -1,0 +1,12 @@
+---
+- name: Setup and Install Pre-Requisites
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  become: yes
+  become_method: sudo
+  tasks:
+    - name: Download required utilities
+      include_role:
+        name: setup_prereqs
+...

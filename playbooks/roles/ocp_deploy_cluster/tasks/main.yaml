@@ -1,0 +1,76 @@
+---
+- name: create install_dir to work in
+  ansible.builtin.file:
+    state: directory
+    path: "{{ working_dir }}/install/{{ ocp_cluster.name }}"
+  register: install_dir
+
+- name: print install_dir location for admin
+  ansible.builtin.debug:
+    msg: "The working directory location is {{ install_dir.path }}"
+
+- name: copy online install-config.yaml into install_dir
+  ansible.builtin.template: 
+    src: "{{ playbook_dir }}/templates/install-config.yaml.j2"
+    dest: "{{ install_dir.path }}/install-config.yaml"
+  when: install_type == "online"
+
+- name: copy offline install-config.yaml into install_dir
+  ansible.builtin.template: 
+    src: "{{ playbook_dir }}/templates/install-config-offline.yaml.j2"
+    dest: "{{ install_dir.path }}/install-config.yaml"
+  when: install_type == "offline"
+
+- name: Copy online install-config.yaml for review
+  ansible.builtin.template:
+    src: "{{ playbook_dir }}/templates/install-config.yaml.j2"
+    dest: "~/install-config-online.yaml"
+  when: install_type == "online"
+
+- name: Copy offline install-config.yaml for review
+  ansible.builtin.template:
+    src: "{{ playbook_dir }}/templates/install-config-offline.yaml.j2"
+    dest: "~/install-config-offline.yaml"
+  when: install_type == "offline"
+
+- name: run IPI installer
+  command: "{{ bin_dir }}/openshift-install create cluster --dir={{ install_dir.path }}"
+  register: cluster_deploy
+
+- name: Install pre-reqs for python
+  become: yes
+  become_method: sudo
+  pip:
+    name:
+      - kubernetes
+
+- name: Configure Community Operators for mirrored sources
+  kubernetes.core.k8s:
+    state: present
+    src: /opt/disconnected_install/oc-mirror-workspace/results-1715794101/catalogSource-cs-community-operator-index.yaml
+    kubeconfig: /tmp/install/{{ cluster_name }}/auth/kubeconfig
+  when: install_type == "offline"
+
+- name: Configure Red Hat Operators for mirrored sources
+  kubernetes.core.k8s:
+    state: present
+    src: /opt/disconnected_install/oc-mirror-workspace/results-1715794101/catalogSource-cs-redhat-operator-index.yaml
+    kubeconfig: /tmp/install/{{ cluster_name }}/auth/kubeconfig
+  when: install_type == "offline"
+
+- name: Configure imageContentSourcePolicy
+  kubernetes.core.k8s:
+    state: present
+    src: /opt/disconnected_install/oc-mirror-workspace/results-1715794101/imageContentSourcePolicy.yaml
+    kubeconfig: /tmp/install/{{ cluster_name }}/auth/kubeconfig
+  when: install_type == "offline"
+
+- name: Disable Default OperatorHub Sources
+  kubernetes.core.k8s_json_patch:
+    kind: OperatorHub
+    name: cluster
+    patch:
+      - op: add
+        path: /spec/disableAllDefaultSources
+        value: true
+  when: install_type == "offline"

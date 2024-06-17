@@ -1,0 +1,13 @@
+---
+- name: Post Cluster
+  hosts: localhost
+  vars:
+    kubeconfig: "{{ working_dir }}/install/{{ ocp_cluster.name }}/auth/kubeconfig"
+  connection: local
+  become: false
+  gather_facts: false
+  tags:
+    - post_cluster
+  tasks:
+    - debug:
+        msg: "Post Install Cluster Configuration"
